@@ -1,11 +1,59 @@
+import random
 
 from telegram.ext import Updater, CommandHandler
 from telegram.bot import Bot
-
+from DB.db import DB
+from Data.models import Question
+from Bot.Constants import *
 
 class TriviaBot(object):
     def __init__(self, token):
+        self.token = token
         self.bot = Bot(token)
+        self.updater = Updater(token, use_context=True)
+        self.db= DB.instance()
+        self.dispatcher = self.updater.dispatcher
+        self.setup_handlers()
 
-    def AskQuestion(chat_id, question, self=None):
-        self.bot.sendMessagage(chat_id, "test question")
+    def start(self):
+        self.updater.start_polling()
+        self.updater.idle()
+
+    def setup_handlers(self):
+        self.dispatcher.add_handler(CommandHandler('newgame', self.new_game, pass_chat_data=True))
+
+    def new_game(self, update, context):
+        chat_id = update.effective_chat.id
+
+        """if chat_id in initGamesChat:
+            answer = 'Already creating Game:\n'
+            '/join to join the game\n'
+            '/start to start the game'
+        elif chat_id in activeGamesChat:
+            answer = 'Game already running'
+        else:
+            create_game(chat_id)
+            answer = 'Creating Game:\n'
+            '/join to join the game\n'
+            '/start to start the game'
+            """
+        # bot = TriviaBot('895779019:AAE54Vxeh5zWdhyy9rsywEVnMMeI8O1RW98')
+        q = Question(1, "comment", "oui", ["non", "ouais", "p-e"])
+        self.ask_question(chat_id, q)
+        # update.message.reply_text(answer)
+
+    def ask_question(self, chat_id, question):
+        answers = question.wrong_answers
+        answers.append(question.answer)
+        random.shuffle(answers)
+
+        text = 'Question:\n'
+        text += question.question + '\n'
+        letterAscii= 65
+        for answer in answers:
+            text += chr(letterAscii)+')' + answer + '\n'
+            letterAscii+=1
+        self.bot.send_message(chat_id, text, reply_markup=keyboard_markup())
+
+    def create_game(self, chat_id):
+        self.db.add(chat_id)
