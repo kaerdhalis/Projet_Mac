@@ -27,7 +27,7 @@ class TriviaBot(object):
     def new_game(self, update, context):
         chat_id = update.effective_chat.id
 
-        if not self.db.has_active_game(chat_id):
+        if self.db.get_active_game(chat_id) is None:
             self.db.add_new_game(chat_id)
             answer = 'Creating Game:\n' \
                      '/join to join the game\n' \
@@ -44,11 +44,14 @@ class TriviaBot(object):
         chat_id = update.effective_chat.id
         user_id = update.message.from_user.id
         user_name = update.message.from_user.username
-        if not self.db.has_active_game(chat_id):
+        active_game= self.db.get_active_game(chat_id)
+        if active_game is None:
             answer = "create a game first with:\n /newgame"
             self.bot.send_message(chat_id, answer)
         else:
             self.db.add_player(user_id, user_name)
+            player= self.db.get_player(user_id)
+            self.db.add_player_to_game(player,active_game)
 
     def ask_question(self, chat_id, question):
         answers = question.wrong_answers

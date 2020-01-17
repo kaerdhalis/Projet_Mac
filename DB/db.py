@@ -3,7 +3,7 @@ from pyArango.collection import Collection, Field
 from pyArango.graph import Graph, EdgeDefinition
 from Decorator.singleton import Singleton
 
-
+from DB.graph import *
 @Singleton
 class DB(object):
 
@@ -32,10 +32,10 @@ class DB(object):
         else:
             self.games_collection = self.db["games"]
 
-       # if not self.db.hasGraph("TriviaGraph"):
-        #    self.graph = self.db.createGraph(name="TriviaGraph")
-        #else:
-         #   self.graph = self.db.graphs['TriviaGraph']
+        if not self.db.hasGraph("TriviaGraph"):
+            self.graph = self.db.createGraph(name="TriviaGraph")
+        else:
+            self.graph = self.db.graphs['TriviaGraph']
 
     def add_category(self, category):
         if category not in self.categories_collection:
@@ -58,6 +58,14 @@ class DB(object):
             new_player._key = str(telegram_id)
             new_player.save()
 
+
+
+    def add_player_to_game(self,player,game):
+        self.graph.link('played', player, game, {})
+
+
+
+
     def get_player(self, telegram_id):
         if str(telegram_id) in self.players_collection:
             return self.players_collection[str(telegram_id)]
@@ -70,13 +78,15 @@ class DB(object):
         new_game["status"] = "init"
         new_game.save()
 
-    def has_active_game(self, chat_id):
+
+
+    def get_active_game(self,chat_id):
         aql = "FOR c IN games FILTER c.chat_id==@chatid &&(c.status == \"init\" || c.status==\"ingame\") LIMIT 10 " \
               "RETURN c "
         bindVars = {'chatid': chat_id}
         queryResult = self.db.AQLQuery(aql, rawResults=False, batchSize=1, bindVars=bindVars)
 
         if not queryResult:
-            return False
+            return None
         else:
-            return True
+            return queryResult[0]
