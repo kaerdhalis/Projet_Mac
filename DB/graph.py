@@ -13,6 +13,7 @@ class questions(Collection):
         "question": Field(),
         "answer": Field(),
         "wrong_answers": Field()
+
     }
 
 
@@ -31,7 +32,7 @@ class categories(Collection):
 
 class played(Edges):
     _fields = {
-
+        "score":Field()
     }
 
 
@@ -43,7 +44,8 @@ class answered(Edges):
 
 class contains(Edges):
     _fields = {
-
+        "correct_answer_count":Field(),
+        "wrong_answer_count":Field()
     }
 
 class isOfCategory(Edges):
