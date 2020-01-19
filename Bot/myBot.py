@@ -159,13 +159,15 @@ class TriviaBot(object):
         self.db.add(chat_id)
 
     def get_random_question(self):
-        new_question = self.opentdb_client.get_questions(1, 18)[0]
+        categories = self.opentdb_client.opentdb_session.getCategories()
+        new_question = self.opentdb_client.get_questions(1, 0)[0]
 
         question = Question(new_question.question, new_question.correct_answer, new_question.incorrect_answers,
                             new_question.category)
         return question
 
     def add_random_question_to_game(self, game):
+        categories =self.opentdb_client.opentdb_session.getCategories()
         new_question = self.opentdb_client.get_questions(1, 18)[0]
 
         question = Question(new_question.question, new_question.correct_answer, new_question.incorrect_answers,
